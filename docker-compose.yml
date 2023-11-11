@@ -1,0 +1,76 @@
+version: '3.7'
+
+services:
+  users_api:
+    build: ./users_service
+    command: make dev-server -C ./users_service
+    volumes:
+      - .:/users
+    env_file:
+      - ./env/.env.dev
+    environment:
+      - BACKEND_PORT=7002
+      - AUTH_SIGNING_KEY=/run/secrets/AUTH_SIGNING_KEY
+      - AUTH_VERIFYING_KEY=/run/secrets/AUTH_VERIFYING_KEY
+    depends_on:
+      - escrow_postgres
+      - escrow_redis
+      - localstack
+    restart: on-failure
+    ports:
+      - "7002:7002"
+
+  escrow_postgres:
+    image: postgres:13.0-alpine
+    volumes:
+      - ./scripts/pg-init-scripts:/docker-entrypoint-initdb.d
+      - escrow_postgres_volume:/var/lib/postgresql/data/
+    ports:
+      - "7032:5432"
+    env_file:
+      - ./env/.env.dev
+    restart: on-failure
+
+  escrow_redis:
+    image: redis:latest
+    restart: on-failure
+    command: redis-server --port 7379
+    volumes: 
+      - escrow_redis_volume:/redis/db
+    env_file:
+      - ./env/.env.dev
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+  
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      - SERVICES=ses,s3,sqs
+      - PORT_WEB_UI=8888
+      - EDGE_PORT=4566
+      - AWS_DEFAULT_REGION=us-east-2
+      - DEBUG=${DEBUG-}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "localstack_volume:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+secrets:
+  AUTH_SIGNING_KEY:
+    file: ./env/dev_auth_private_key.pem
+  AUTH_VERIFYING_KEY:
+    file: ./env/dev_auth_public_key.pem
+
+volumes:
+  escrow_redis_volume:
+  escrow_postgres_volume:
+  localstack_volume:
+
+
+
