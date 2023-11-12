@@ -23,7 +23,7 @@ services:
   escrow_postgres:
     image: postgres:13.0-alpine
     volumes:
-      - ./scripts/pg-init-scripts:/docker-entrypoint-initdb.d
+      - ./includes/scripts/pg-init-scripts:/docker-entrypoint-initdb.d
       - escrow_postgres_volume:/var/lib/postgresql/data/
     ports:
       - "7032:5432"
