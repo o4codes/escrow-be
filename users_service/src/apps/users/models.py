@@ -1,17 +1,13 @@
 from django.db import models
-
-# Create your models here.
-from decouple import config as env_config
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.db import models
-from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
+from escrow_includes.helpers.drf_helpers import BaseModel, DateHistoryMixin, UUIDPrimaryKeyMixin
 
-from src.apps.users.enums import Gender, UserRoles
+from src.apps.users.enums import UserRoles
 from src.apps.users.managers import UserManager
 
 
-class User(AbstractBaseUser, PermissionsMixin, UUIDPrimaryKeyMixin, DateHistoryMixin):
+class User(AbstractBaseUser, PermissionsMixin, UUIDPrimaryKeyMixin, DateHistoryMixin, BaseModel):
     first_name = models.CharField(_("first name"), max_length=150, blank=False)
     last_name = models.CharField(_("last name"), max_length=150, blank=False)
     middle_name = models.CharField(_("middle name"), max_length=150, blank=True)
@@ -37,9 +33,6 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDPrimaryKeyMixin, DateHistoryM
             "Unselect this instead of deleting accounts."
         ),
     )
-    gender = models.CharField(
-        max_length=10, choices=Gender.choices, null=False, blank=False
-    )
     role = models.CharField(
         max_length=10, choices=UserRoles.choices, null=True, blank=False
     )
@@ -55,26 +48,3 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDPrimaryKeyMixin, DateHistoryM
         verbose_name = "User"
         verbose_name_plural = "Users"
         ordering = ["-created_at"]
-
-    def send_email(
-        self,
-        context: dict,
-        subject: str,
-        message: str,
-        template: str = None,
-    ):
-        from django.core.mail import send_mail
-
-        html_message = None
-        if template:
-            html_message = render_to_string(
-                template,
-                context,
-            )
-        return send_mail(
-            subject=subject,
-            message=message,
-            from_email=env_config("EMAIL_HOST_USER", default="admin@anavara.com"),
-            recipient_list=[self.email],
-            html_message=html_message,
-        )

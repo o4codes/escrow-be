@@ -3,3 +3,4 @@ djangorestframework
 grpcio
 whitenoise
 python-decouple
+escrow-includes
