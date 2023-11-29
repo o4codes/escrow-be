@@ -1,13 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
-from escrow_includes.helpers.drf_helpers import BaseModel, DateHistoryMixin, UUIDPrimaryKeyMixin
+from escrow_includes.helpers.drf_helpers import (
+    BaseModel,
+    DateHistoryMixin,
+    UUIDPrimaryKeyMixin,
+)
 
 from src.apps.users.enums import UserRoles
 from src.apps.users.managers import UserManager
 
 
-class User(AbstractBaseUser, PermissionsMixin, UUIDPrimaryKeyMixin, DateHistoryMixin, BaseModel):
+class User(
+    AbstractBaseUser, PermissionsMixin, UUIDPrimaryKeyMixin, DateHistoryMixin, BaseModel
+):
     first_name = models.CharField(_("first name"), max_length=150, blank=False)
     last_name = models.CharField(_("last name"), max_length=150, blank=False)
     middle_name = models.CharField(_("middle name"), max_length=150, blank=True)
