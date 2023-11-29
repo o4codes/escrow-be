@@ -4,3 +4,4 @@ grpcio
 whitenoise
 python-decouple
 escrow-includes
+drf-spectacular
